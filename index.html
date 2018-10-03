@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Monetary Incentive Delay Task</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <link href="/jspsych-6.0.4/css/jspsych.css" rel="stylesheet" type="text/css" />
+    <style>
+        #results-wr {
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+  <div class="container">
+      <div id="experiment-intro" style="text-align: center;">
+        <h1>Welcome to the MID task.</h1>
+        <table style="margin: auto; text-align: left;">
+          <tr>
+            <td>num trials:</td>
+            <td><input type="number" name="numTrials" value="11" step="1" min="1" /></td>
+          </tr>
+          <tr>
+            <td>n_down:</td>
+            <td><input type="number" name="nDown" value="2" step="1" min="1" /></td>
+          </tr>
+          <tr>  
+            <td>factor:</td>
+            <td><input type="number" name="factor" value="1.3" step="0.05" min="1" /></td>
+          </tr>
+          <tr>  
+            <td>Initial Value:</td>
+            <td><input type="number" name="initialValue" value="350" step="10" min="100" /> ms</td>
+          </tr>
+        </table>
+        <br/>
+        <button id="runExperiment" class="btn btn-primary">Run Experiment</button>
+      </div>
+  </div>
+</body>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="/vendor/popper.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+<script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+
+<script src="/jspsych-6.0.4/jspsych.js"></script>
+<script src="/jspsych-6.0.4/plugins/jspsych-html-keyboard-response.js"></script>
+<script src="/display/graph.js"></script>
+<script src="/staircase/staircase.js"></script>
+<script src="/experiment.js"></script>
+<script>
+var results = {};
+var experiment = {
+  staircase: null
+};
+
+$(function() {
+  $("#runExperiment").click(startExperiment);
+});
+
+function startExperiment() {
+  var experimentSettings = getSettings();
+  var timeline = getMIDTimeline(experimentSettings);
+  jsPsych.init({
+    timeline: timeline,
+    on_finish: function() {
+      results.trials = JSON.parse(
+        jsPsych.data.get().filter({target: true}).json()
+      );
+      processResults();
+      displayResults();
+    }
+  });
+}
+
+function getSettings() {
+  return {
+    numTrials: parseInt($('input[name="numTrials"]').val()),
+    nDown: parseInt($('input[name="nDown"]').val()),
+    factor: parseFloat($('input[name="factor"]').val()),
+    firstVal: parseInt($('input[name="initialValue"]').val())
+  }
+}
+
+function processResults() {
+    var numHits = 0;
+    var numMisses = 0;
+    results.dataPoints = [];
+    
+    results.trials.forEach( function(trial) {
+      delete trial.stimulus;
+      var datapoint = {
+        x: trial.time_elapsed / 1000,
+        y: trial.presentation_duration,
+      };
+
+      if (trial.hit) {
+        datapoint.markerColor = 'green';
+        datapoint.markerType = 'triangle';
+        numHits++;
+      }
+      else {
+        datapoint.markerColor = 'red';
+        datapoint.markerType = 'cross';
+        numMisses++;
+      }
+      results.dataPoints.push(datapoint);
+    });
+
+    results.numHits = numHits;
+    results.numMisses = numMisses;
+
+    results.successRate = numHits / (numHits + numMisses);
+}
+
+
+function displayResults() {
+    $('.jspsych-content-wrapper').remove();
+    var resultsHtml = $('<div id="results-wr" class="container"><h1>Results:</h1></div>');
+    resultsHtml.append(`<p>You scored ${results.successRate * 100} %<p><hr><hr>`);
+    
+    resultsHtml.append('<div id="theGraph" style="height: 450px;"></div>');
+    resultsHtml.append('<hr><hr>');
+    $('body').append(resultsHtml);
+
+    drawSampleChart(results);
+    resultsHtml.append(prettyPrint(results));
+
+}
+
+function prettyPrint(obj) {
+    var dataString = JSON.stringify(obj, null, 3);
+    var styles = 'font-size: 0.7rem; background: #eee; border: 1px solid #aaa;'
+    return `<pre style="${styles}">${dataString}</pre>`;
+}
+
+</script>
+</html>
