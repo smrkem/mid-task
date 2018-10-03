@@ -18,9 +18,6 @@ function getMIDTimeline(settings) {
     throw new Error("No firstVal specified for staircase.");
   }
 
-  console.log('firstVal: ', settings.firstVal);
-  console.log('firstVal type: ', typeof settings.firstVal);
-
   var staircase = new Staircase({
     firstVal: settings.firstVal,
     down: settings.nDown,
@@ -48,11 +45,17 @@ function getMIDTimeline(settings) {
     }
   }
 
+  var instructions = {
+    type: "html-keyboard-response",
+    stimulus: `<p>This block will consist of ${settings.numTrials} trials.</p>` +
+      "<p>The fixation will appear followed by the target. Try to press the ENTER key as quickly as possible while the target is displayed." +
+      "<p></p><p>Press any key to begin.</p>"
+  }
+
   // Create MID timeline
   var timeline = []
   timeline.push(instructions);
   
-
   var test_procedure = {
     timeline: [fixation, test, fixation, feedback],
     repetitions: settings.numTrials
@@ -64,12 +67,6 @@ function getMIDTimeline(settings) {
 
 
 // Set up experiment bits in vars where possible:
-var instructions = {
-  type: "html-keyboard-response",
-  stimulus: "<p>This block will consist of 25 trials.</p>" +
-    "<p>The fixation will appear followed by the target. Try to press the ENTER key as quickly as possible while the target is displayed." +
-    "<p></p><p>Press any key to begin.</p>"
-}
 
 var fixation = {
   type: 'html-keyboard-response',
@@ -89,5 +86,6 @@ var feedback = {
     var msg = targetData.hit ? 'You Win!!!' : 'Sorry. You Lose.';
     return '<p>' + msg + '</p>';
   },
+  choices: jsPsych.NO_KEYS,
   trial_duration: function() { return jitterTime(); }
 }
