@@ -66,6 +66,11 @@ function startExperiment() {
       results.trials = JSON.parse(
         jsPsych.data.get().filter({target: true}).json()
       );
+      results.full_trials = JSON.parse(
+        jsPsych.data.get().json()
+      );
+      console.log('results: ', results);
+
       processResults();
       displayResults();
     }
