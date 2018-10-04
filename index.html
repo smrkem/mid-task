@@ -63,13 +63,9 @@ function startExperiment() {
   jsPsych.init({
     timeline: timeline,
     on_finish: function() {
-      results.trials = JSON.parse(
-        jsPsych.data.get().filter({target: true}).json()
-      );
-      results.full_trials = JSON.parse(
+      results.trialData = JSON.parse(
         jsPsych.data.get().json()
       );
-      console.log('results: ', results);
 
       processResults();
       displayResults();
@@ -91,24 +87,30 @@ function processResults() {
     var numMisses = 0;
     results.dataPoints = [];
     
-    results.trials.forEach( function(trial) {
+    results.trialData.forEach( function(trialPart) {
       delete trial.stimulus;
-      var datapoint = {
-        x: trial.time_elapsed / 1000,
-        y: trial.presentation_duration,
-      };
 
-      if (trial.hit) {
-        datapoint.markerColor = 'green';
-        datapoint.markerType = 'triangle';
-        numHits++;
+      // Organize into trials
+      
+      if (trial.target) {
+        var datapoint = {
+          x: trial.time_elapsed / 1000,
+          y: trial.presentation_duration,
+        };
+
+        if (trial.hit) {
+          datapoint.markerColor = 'green';
+          datapoint.markerType = 'triangle';
+          numHits++;
+        }
+        else {
+          datapoint.markerColor = 'red';
+          datapoint.markerType = 'cross';
+          numMisses++;
+        }
+
+        results.dataPoints.push(datapoint);
       }
-      else {
-        datapoint.markerColor = 'red';
-        datapoint.markerType = 'cross';
-        numMisses++;
-      }
-      results.dataPoints.push(datapoint);
     });
 
     results.numHits = numHits;

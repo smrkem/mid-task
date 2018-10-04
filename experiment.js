@@ -47,6 +47,7 @@ function getMIDTimeline(settings) {
 
   var instructions = {
     type: "html-keyboard-response",
+    data: { instructions: true },
     stimulus: `<p>This block will consist of ${settings.numTrials} trials.</p>` +
       "<p>The fixation will appear followed by the target. Try to press the ENTER key as quickly as possible while the target is displayed." +
       "<p></p><p>Press any key to begin.</p>"
@@ -70,9 +71,9 @@ function getMIDTimeline(settings) {
 
 var fixation = {
   type: 'html-keyboard-response',
-  myvar: 'fixation',
+  data: { fixation: true },
   stimulus: '<div style="font-size:60px;">+</div>',
-  choices: jsPsych.NO_KEYS,
+  response_ends_trial: false,
   trial_duration: function() { return jitterTime(); }
 }
 
@@ -86,6 +87,7 @@ var feedback = {
     var msg = targetData.hit ? 'You Win!!!' : 'Sorry. You Lose.';
     return '<p>' + msg + '</p>';
   },
-  choices: jsPsych.NO_KEYS,
+  data: { feedback: true },
+  response_ends_trial: false,
   trial_duration: function() { return jitterTime(); }
 }
