@@ -86,19 +86,17 @@ function processResults() {
     var numHits = 0;
     var numMisses = 0;
     results.dataPoints = [];
-    
-    results.trialData.forEach( function(trialPart) {
-      delete trial.stimulus;
 
-      // Organize into trials
-      
-      if (trial.target) {
+    results.trialData.forEach( function(trialPart) {
+      delete trialPart.stimulus;
+
+      if (trialPart.target) {
         var datapoint = {
-          x: trial.time_elapsed / 1000,
-          y: trial.presentation_duration,
+          x: trialPart.time_elapsed / 1000,
+          y: trialPart.presentation_duration,
         };
 
-        if (trial.hit) {
+        if (trialPart.hit) {
           datapoint.markerColor = 'green';
           datapoint.markerType = 'triangle';
           numHits++;
@@ -113,10 +111,30 @@ function processResults() {
       }
     });
 
+
+    results.trials = collectTrials();
+
     results.numHits = numHits;
     results.numMisses = numMisses;
 
     results.successRate = numHits / (numHits + numMisses);
+}
+
+function collectTrials() {
+  console.log('results', results);
+  var trials = [];
+
+  while (results.trialData.length >= 4) {
+    var newTrial = {
+      feedback: results.trialData.pop(),
+      fixation2: results.trialData.pop(),
+      target: results.trialData.pop(),
+      fixation1: results.trialData.pop()
+    }
+    trials.push(newTrial);
+  }
+
+  return trials;
 }
 
 

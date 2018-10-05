@@ -38,16 +38,18 @@ toDo:
 
 ### iteration 3
 1. Adjust experimental setup so it detects early and late responses (responses during the fixation period). 
-- set `response_ends_trial` to false for fixations.
+&- set `response_ends_trial` to false for fixations.
 2. Provide top level data for each trial:
 - whether they hit or miss
 - rt
 - early or late?
 - elapsed_time (to tie to imaging studies)
-3. Improve staircase performance
-4. Independent survey portion
+3. Fullscreen capability
+4. Improve staircase performance
+5. Independent survey portion
 - assigns or gets a participant_id
 - task portion can be started using matching survey portion data
+
 
 ### Questions
 - Do we want to display the target for the entire presentation duration, or have it disappear as soon as the user responds (like in current version)?
