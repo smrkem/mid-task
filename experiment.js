@@ -34,9 +34,7 @@ function getMIDTimeline(settings) {
     stimulus: '<div style="display: block; height: 80px; width: 80px; background: #666; border-radius: 50%;"></div>',
     trial_duration: function() { return staircase.getValue() },
     choices: ['Enter', 'Space'],
-    data: {
-        target: true
-    },
+    data: {target: true},
     on_finish: function(data) {
         data.presentation_duration = staircase.getValue();
         var hit = data.rt ? true : false;
@@ -55,13 +53,24 @@ function getMIDTimeline(settings) {
 
   // Create MID timeline
   var timeline = []
+  timeline.push({
+    type: 'fullscreen',
+    fullscreen_mode: true
+  });
+  
   timeline.push(instructions);
   
   var test_procedure = {
-    timeline: [fixation, test, fixation, feedback],
+    timeline: [fixation1, test, fixation2, feedback],
     repetitions: settings.numTrials
   }
   timeline.push(test_procedure);
+
+  timeline.push({
+    type: 'fullscreen',
+    fullscreen_mode: false
+  });
+  
 
   return timeline;
 }
@@ -69,12 +78,26 @@ function getMIDTimeline(settings) {
 
 // Set up experiment bits in vars where possible:
 
-var fixation = {
+var fixation1 = {
   type: 'html-keyboard-response',
-  data: { fixation: true },
+  data: { fixation1: true, beginTrial: true },
   stimulus: '<div style="font-size:60px;">+</div>',
   response_ends_trial: false,
-  trial_duration: function() { return jitterTime(); }
+  trial_duration: function() { return jitterTime(); },
+  on_finish: function(data) {
+    data.presentation_duration = this.trial_duration;
+  }
+}
+
+var fixation2 = {
+  type: 'html-keyboard-response',
+  data: { fixation2: true },
+  stimulus: '<div style="font-size:60px;">+</div>',
+  response_ends_trial: false,
+  trial_duration: function() { return jitterTime(); },
+  on_finish: function(data) {
+    data.presentation_duration = this.trial_duration;
+  }
 }
 
 var feedback = {

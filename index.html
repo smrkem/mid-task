@@ -17,7 +17,7 @@
         <table style="margin: auto; text-align: left;">
           <tr>
             <td>num trials:</td>
-            <td><input type="number" name="numTrials" value="11" step="1" min="1" /></td>
+            <td><input type="number" name="numTrials" value="3" step="1" min="1" /></td>
           </tr>
           <tr>
             <td>n_down:</td>
@@ -44,6 +44,7 @@
 
 <script src="/jspsych-6.0.4/jspsych.js"></script>
 <script src="/jspsych-6.0.4/plugins/jspsych-html-keyboard-response.js"></script>
+<script src="/jspsych-6.0.4/plugins/jspsych-fullscreen.js"></script>
 <script src="/display/graph.js"></script>
 <script src="/staircase/staircase.js"></script>
 <script src="/experiment.js"></script>
@@ -85,34 +86,46 @@ function getSettings() {
 function processResults() {
     var numHits = 0;
     var numMisses = 0;
+    var currentTrial = null;
+    var trialIndex = 1;
     results.dataPoints = [];
+
+    results.trials = [];
 
     results.trialData.forEach( function(trialPart) {
       delete trialPart.stimulus;
+      if (trialPart.beginTrial) {
+        if (currentTrial) {
+          results.trials.push(currentTrial);
+        }
+        currentTrial = {
+          index: trialIndex++
+        }
+      }
+
+      if (trialPart.fixation1) {
+        currentTrial.responded_early = trialPart.rt || false;
+      }
 
       if (trialPart.target) {
-        var datapoint = {
-          x: trialPart.time_elapsed / 1000,
-          y: trialPart.presentation_duration,
-        };
-
+        currentTrial.hit = trialPart.hit;
+        currentTrial.rt = trialPart.rt;
+        currentTrial.target_presentation_duration = trialPart.presentation_duration;
+        results.dataPoints.push(getDataPoint(trialPart));
         if (trialPart.hit) {
-          datapoint.markerColor = 'green';
-          datapoint.markerType = 'triangle';
           numHits++;
         }
         else {
-          datapoint.markerColor = 'red';
-          datapoint.markerType = 'cross';
           numMisses++;
         }
+      }
 
-        results.dataPoints.push(datapoint);
+
+      if (trialPart.fixation2) {
+        currentTrial.responded_late = trialPart.rt || false;
       }
     });
-
-
-    results.trials = collectTrials();
+    results.trials.push(currentTrial);
 
     results.numHits = numHits;
     results.numMisses = numMisses;
@@ -120,23 +133,15 @@ function processResults() {
     results.successRate = numHits / (numHits + numMisses);
 }
 
-function collectTrials() {
-  console.log('results', results);
-  var trials = [];
-
-  while (results.trialData.length >= 4) {
-    var newTrial = {
-      feedback: results.trialData.pop(),
-      fixation2: results.trialData.pop(),
-      target: results.trialData.pop(),
-      fixation1: results.trialData.pop()
-    }
-    trials.push(newTrial);
-  }
-
-  return trials;
+function getDataPoint(trialPart) {
+  var datapoint = {
+    x: trialPart.time_elapsed / 1000,
+    y: trialPart.presentation_duration,
+    markerColor: trialPart.hit ? 'green' : 'red',
+    markerType: trialPart.hit ? 'triangle' : 'cross',
+  };
+  return datapoint;
 }
-
 
 function displayResults() {
     $('.jspsych-content-wrapper').remove();
@@ -148,8 +153,9 @@ function displayResults() {
     $('body').append(resultsHtml);
 
     drawSampleChart(results);
-    resultsHtml.append(prettyPrint(results));
-
+    resultsHtml.append(prettyPrint(results.trials));
+    resultsHtml.append('<hr><hr>');
+    resultsHtml.append(prettyPrint(results.trialData));
 }
 
 function prettyPrint(obj) {
