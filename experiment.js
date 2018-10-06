@@ -18,14 +18,23 @@ function getMIDTimeline(settings) {
     throw new Error("No firstVal specified for staircase.");
   }
 
-  var staircase = new Staircase({
-    firstVal: settings.firstVal,
-    down: settings.nDown,
-    factor: settings.factor,
-    operation: 'multiply',
-    limits: [0, 600],
-    verbosity: 1
-  });
+  if (settings.staircase_method == 'version2') {
+    var staircase = new DbStaircase({
+      firstVal: settings.firstVal,
+      down: settings.nDown,
+      stepSizes: [8, 4, 4, 2, 2, 1]
+    });
+  } else {
+    var staircase = new Staircase({
+      firstVal: settings.firstVal,
+      down: settings.nDown,
+      factor: settings.factor,
+      operation: 'multiply',
+      limits: [0, 600],
+      verbosity: 1
+    });
+  }
+
 
 
   // create test here so it uses staircase:
