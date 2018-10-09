@@ -22,7 +22,8 @@ function getMIDTimeline(settings) {
     var staircase = new DbStaircase({
       firstVal: settings.firstVal,
       down: settings.nDown,
-      stepSizes: [8, 4, 4, 2, 2, 1]
+      stepSizes: [8, 4, 4, 2, 2, 1, 1, 0.5],
+      verbosity: 1
     });
   } else {
     var staircase = new Staircase({
@@ -49,6 +50,8 @@ function getMIDTimeline(settings) {
         var hit = data.rt ? true : false;
         data.hit = hit;
         staircase.addResponse(hit);
+        data.reversed = staircase.stairs.reversed;
+        data.myVar = 'fjs';
     }
   }
 

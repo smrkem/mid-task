@@ -17,7 +17,7 @@
         <table style="margin: auto; text-align: left;">
           <tr>
             <td>num trials:</td>
-            <td><input type="number" name="numTrials" value="3" step="1" min="1" /></td>
+            <td><input type="number" name="numTrials" value="6" step="1" min="1" /></td>
           </tr>
           <tr>
             <td>n_down:</td>
@@ -135,11 +135,13 @@ function processResults() {
 }
 
 function getDataPoint(trialPart) {
+  var markerType = trialPart.hit ? 'triangle' : 'cross';
   var datapoint = {
     x: trialPart.time_elapsed / 1000,
     y: trialPart.presentation_duration,
     markerColor: trialPart.hit ? 'green' : 'red',
-    markerType: trialPart.hit ? 'triangle' : 'cross',
+    markerType: trialPart.reversed ? 'circle' : markerType,
+    markerSize: trialPart.reversed ? 16 : 10
   };
   return datapoint;
 }

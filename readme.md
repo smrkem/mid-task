@@ -44,7 +44,7 @@ toDo:
 5. Independent survey portion
 - assigns or gets a participant_id
 - task portion can be started using matching survey portion data
-6. Fullscreen
+6. initial v1 experiment (dev hosting)
 
 ### iteration 4
 1. Start putting in real copy and desired jittering.
@@ -52,7 +52,8 @@ toDo:
 
 ### Questions
 - Do we want to display the target for the entire presentation duration, or have it disappear as soon as the user responds (like in current version)?
-- What kind of data do we want to store for each trial, each block 
+- What kind of data do we want to store for each trial, each block
+- hosting, expenses, potential security issues, etc. 
 
 ### Backlog
 - Refactor js. Look at testing.

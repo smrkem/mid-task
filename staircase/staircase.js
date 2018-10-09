@@ -106,22 +106,32 @@ function DbStaircase(stairs) {
   this.stairs.up = stairs.up || 1;
   this.stairs.successiveGood = 0;
   this.stairs.successiveBad = 0;
+  this.stairs.reversed = false;
+  this.stairs.currentDirection = 0;
   this.stairs.verbosity = stairs.verbosity || 0;
   if (this.stairs.verbosity) {
     console.log(`Built ${this.stairs.up}-up, ${this.stairs.down}-down staircase.`);
   }
   this.timings = {
     easier: function(stair) { // easier is 'increase time'
-      var stepSize = stair.stepSizes[stair.currentStepSizeIndex];
+      var dB = stair.stepSizes[stair.currentStepSizeIndex];
       var oldVal = stair.values[stair.values.length - 1];
-      console.log('easier stepSize:', stepSize);
-      return oldVal;
+      var ratio = Math.pow(10, dB/20 * 1);
+
+      console.log('easier db: ', dB);
+      console.log('easier ratio: ', ratio);
+
+      return oldVal * ratio;
     },
     harder: function(stair) { // harder is 'deacrease time'
-      var stepSize = stair.stepSizes[stair.currentStepSizeIndex];
+      var dB = stair.stepSizes[stair.currentStepSizeIndex];
       var oldVal = stair.values[stair.values.length - 1];
-      console.log('harder stepSize:', stepSize);
-      return oldVal;
+      var ratio = Math.pow(10, dB/20 * -1);
+
+      console.log('harder db: ', dB);
+      console.log('harder ratio: ', ratio);
+
+      return oldVal * ratio;
     }
   }
 }
@@ -141,27 +151,50 @@ DbStaircase.prototype.addResponse = function(resp) {
 DbStaircase.prototype.chooseNextVal = function(resp) {
   var stair = this.stairs;
   var ans = (resp) ? 'harder' : 'easier';
-
-  var newVal = 'figure it out';
+  stair.reversed = false;
 
   if (ans == 'easier' && stair.successiveBad >= stair.up) {
     stair.successiveBad = 0;
-    // detect reversal and update currentStepSizeIndex
 
+    // detect reversal and update currentStepSizeIndex
+    if (stair.currentDirection == -1) {
+      // reversal happened
+      console.log('Reversal happened');
+      // console.log('prevDir: ', stair.currentDirection);
+      console.log('prevStepSize: ', this.stairs.stepSizes[this.stairs.currentStepSizeIndex]);
+      this.incrementStepSizeIndex();
+      console.log('nextStepSize: ', this.stairs.stepSizes[this.stairs.currentStepSizeIndex]);
+      this.stairs.reversed = true;
+    }
+    this.stairs.currentDirection = 1;
+        
     var newVal = this.timings[ans](stair);
     if (stair.verbosity > 0) {
       console.log("Decreasing stair difficulty. Setting new value to " + newVal + "ms.");
     }
+
     return newVal;
   }
   else if (ans == 'harder' && stair.successiveGood >= stair.down) {
     stair.successiveGood = 0;
+
     // detect reversal and update currentStepSizeIndex
+    if (stair.currentDirection == 1) {
+      // reversal happened
+      console.log('Reversal happened');
+      // console.log('prevDir: ', stair.currentDirection);
+      console.log('prevStepSize: ', this.stairs.stepSizes[this.stairs.currentStepSizeIndex]);
+      this.incrementStepSizeIndex();
+      console.log('nextStepSize: ', this.stairs.stepSizes[this.stairs.currentStepSizeIndex]);
+      this.stairs.reversed = true;
+    }
+    this.stairs.currentDirection = -1;
 
     var newVal = this.timings[ans](stair);
     if (stair.verbosity > 0) {
       console.log("Increasing stair difficulty. Setting new value to " + newVal + "ms.");
     }
+
     return newVal;
   }
   else {
@@ -172,4 +205,11 @@ DbStaircase.prototype.chooseNextVal = function(resp) {
 
 DbStaircase.prototype.getValue = function(n = 1) {
   return this.stairs.values[this.stairs.values.length - n];
+}
+
+DbStaircase.prototype.incrementStepSizeIndex = function() {
+  if (this.stairs.currentStepSizeIndex == this.stairs.stepSizes.length - 1) {
+    return;
+  }
+  this.stairs.currentStepSizeIndex++;
 }
