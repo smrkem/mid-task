@@ -85,16 +85,23 @@ function getSettings() {
 }
 
 function processResults() {
-    var numHits = 0;
-    var numMisses = 0;
-    var currentTrial = null;
-    var trialIndex = 1;
-    results.dataPoints = [];
 
-    results.trials = [];
+    collectTrials();
+    results.staircase_values = getStaircaseValues();
+    results.successRate = results.numHits / (results.numHits + results.numMisses);
+}
 
-    results.trialData.forEach( function(trialPart) {
+function collectTrials() {
+  results.trials = [];
+  results.numHits = 0;
+  results.numMisses = 0;
+  results.dataPoints = [];
+
+  var currentTrial = null;
+  var trialIndex = 1;
+  results.trialData.forEach( function(trialPart) {
       delete trialPart.stimulus;
+
       if (trialPart.beginTrial) {
         if (currentTrial) {
           results.trials.push(currentTrial);
@@ -112,12 +119,13 @@ function processResults() {
         currentTrial.hit = trialPart.hit;
         currentTrial.rt = trialPart.rt;
         currentTrial.target_presentation_duration = trialPart.presentation_duration;
+ 
         results.dataPoints.push(getDataPoint(trialPart));
         if (trialPart.hit) {
-          numHits++;
+          results.numHits++;
         }
         else {
-          numMisses++;
+          results.numMisses++;
         }
       }
 
@@ -127,11 +135,10 @@ function processResults() {
       }
     });
     results.trials.push(currentTrial);
+}
 
-    results.numHits = numHits;
-    results.numMisses = numMisses;
+function getStaircaseValues() {
 
-    results.successRate = numHits / (numHits + numMisses);
 }
 
 function getDataPoint(trialPart) {

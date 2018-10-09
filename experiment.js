@@ -47,11 +47,13 @@ function getMIDTimeline(settings) {
     data: {target: true},
     on_finish: function(data) {
         data.presentation_duration = staircase.getValue();
+        // var staircase_values = staircase.stairs.values;
+        data.staircase_values = staircase.stairs.values.slice();
         var hit = data.rt ? true : false;
         data.hit = hit;
         staircase.addResponse(hit);
         data.reversed = staircase.stairs.reversed;
-        data.myVar = 'fjs';
+        data.myVar = 't2';
     }
   }
 
