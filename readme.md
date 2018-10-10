@@ -51,9 +51,14 @@ toDo:
 2. Start storing data
 
 ### Questions
+- Approach: Determine a response threshold during the trial phase (either set num of trials or num of reversals). Final result is the mean over last n results. Use this as 'presentation_duration' for the trials. Trials can use a modified staircase that keeps track of cumulative success rate - but we need to watch out for falling into a predictable 1-win-1-loss pattern.
 - Do we want to display the target for the entire presentation duration, or have it disappear as soon as the user responds (like in current version)?
 - What kind of data do we want to store for each trial, each block
 - hosting, expenses, potential security issues, etc. 
+- fullscreen during survey and all other pieces? or can drop in and out?
+- can we schedule a time to visit a neuroimaging site?
+- need to start going over powerpoint slides and gathering content for survey and tasks.
+
 
 ### Backlog
 - Refactor js. Look at testing.
