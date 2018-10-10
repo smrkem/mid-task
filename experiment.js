@@ -18,14 +18,19 @@ function getMIDTimeline(settings) {
     throw new Error("No firstVal specified for staircase.");
   }
 
-  var staircase = new Staircase({
-    firstVal: settings.firstVal,
-    down: settings.nDown,
-    factor: settings.factor,
-    operation: 'multiply',
-    limits: [0, 600],
-    verbosity: 1
-  });
+  if (settings.staircase_method == 'version2') {
+    var staircase = settings.staircase;
+  } else {
+    var staircase = new Staircase({
+      firstVal: settings.firstVal,
+      down: settings.nDown,
+      factor: settings.factor,
+      operation: 'multiply',
+      limits: [0, 600],
+      verbosity: 1
+    });
+  }
+
 
 
   // create test here so it uses staircase:
@@ -40,6 +45,8 @@ function getMIDTimeline(settings) {
         var hit = data.rt ? true : false;
         data.hit = hit;
         staircase.addResponse(hit);
+        data.reversed = staircase.stairs.reversed;
+        data.myVar = 't2';
     }
   }
 

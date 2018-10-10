@@ -17,7 +17,7 @@
         <table style="margin: auto; text-align: left;">
           <tr>
             <td>num trials:</td>
-            <td><input type="number" name="numTrials" value="3" step="1" min="1" /></td>
+            <td><input type="number" name="numTrials" value="6" step="1" min="1" /></td>
           </tr>
           <tr>
             <td>n_down:</td>
@@ -60,6 +60,12 @@ $(function() {
 
 function startExperiment() {
   var experimentSettings = getSettings();
+  experimentSettings.staircase = new DbStaircase({
+    firstVal: experimentSettings.firstVal,
+    down: experimentSettings.nDown,
+    stepSizes: [8, 4, 4, 2, 2, 1, 1, 0.5],
+    verbosity: 1
+  });
   var timeline = getMIDTimeline(experimentSettings);
   jsPsych.init({
     timeline: timeline,
@@ -67,7 +73,7 @@ function startExperiment() {
       results.trialData = JSON.parse(
         jsPsych.data.get().json()
       );
-
+      results.staircase = experimentSettings.staircase;
       processResults();
       displayResults();
     }
@@ -79,21 +85,29 @@ function getSettings() {
     numTrials: parseInt($('input[name="numTrials"]').val()),
     nDown: parseInt($('input[name="nDown"]').val()),
     factor: parseFloat($('input[name="factor"]').val()),
-    firstVal: parseInt($('input[name="initialValue"]').val())
+    firstVal: parseInt($('input[name="initialValue"]').val()),
+    staircase_method: 'version2'
   }
 }
 
 function processResults() {
-    var numHits = 0;
-    var numMisses = 0;
-    var currentTrial = null;
-    var trialIndex = 1;
-    results.dataPoints = [];
+    collectTrials();
+    results.successRate = results.numHits / (results.numHits + results.numMisses);
 
-    results.trials = [];
+    getStaircaseValues();
+}
 
-    results.trialData.forEach( function(trialPart) {
+function collectTrials() {
+  results.trials = [];
+  results.numHits = 0;
+  results.numMisses = 0;
+  results.dataPoints = [];
+
+  var currentTrial = null;
+  var trialIndex = 1;
+  results.trialData.forEach( function(trialPart) {
       delete trialPart.stimulus;
+
       if (trialPart.beginTrial) {
         if (currentTrial) {
           results.trials.push(currentTrial);
@@ -111,12 +125,13 @@ function processResults() {
         currentTrial.hit = trialPart.hit;
         currentTrial.rt = trialPart.rt;
         currentTrial.target_presentation_duration = trialPart.presentation_duration;
+ 
         results.dataPoints.push(getDataPoint(trialPart));
         if (trialPart.hit) {
-          numHits++;
+          results.numHits++;
         }
         else {
-          numMisses++;
+          results.numMisses++;
         }
       }
 
@@ -126,19 +141,39 @@ function processResults() {
       }
     });
     results.trials.push(currentTrial);
+}
 
-    results.numHits = numHits;
-    results.numMisses = numMisses;
+function getStaircaseValues() {
+  // Last value in staircase not used:
+  results.staircase.stairs.values.splice(-1);
+  results.staircase_values = results.staircase.stairs.values;
+  results.num_reversals = results.staircase.stairs.numReversals;
 
-    results.successRate = numHits / (numHits + numMisses);
+  [10, 7, 5, 3].forEach( function(n) {
+    if (results.staircase_values.length > n) {
+      results[`mean_value_last_${n}`] = getMeanForLast(results.staircase_values, n);
+    }
+  });
+}
+
+function getMeanForLast(arr, n) {
+  var data = arr.slice(-n);
+  var sum = 0;
+  for (var i = 0; i < data.length; i++) {
+    sum += data[i];
+  }
+
+  return Math.round(sum / n);
 }
 
 function getDataPoint(trialPart) {
+  var markerType = trialPart.hit ? 'triangle' : 'cross';
   var datapoint = {
     x: trialPart.time_elapsed / 1000,
     y: trialPart.presentation_duration,
     markerColor: trialPart.hit ? 'green' : 'red',
-    markerType: trialPart.hit ? 'triangle' : 'cross',
+    markerType: trialPart.reversed ? 'circle' : markerType,
+    markerSize: trialPart.reversed ? 16 : 10
   };
   return datapoint;
 }
@@ -149,10 +184,19 @@ function displayResults() {
     resultsHtml.append(`<p>You scored ${results.successRate * 100} %<p><hr><hr>`);
     
     resultsHtml.append('<div id="theGraph" style="height: 450px;"></div>');
-    resultsHtml.append('<hr><hr>');
     $('body').append(resultsHtml);
 
     drawSampleChart(results);
+    resultsHtml.append('<hr><hr>');
+
+    resultsHtml.append(`<h2>Determined Threshold</h2>`);
+    [10, 7, 5, 3].forEach( function(n) {
+      if (typeof results[`mean_value_last_${n}`] !== 'undefined') {
+        resultsHtml.append(`<p>Mean over last ${n} values: ${results[`mean_value_last_${n}`]}ms</p>`);
+      }
+    });
+    resultsHtml.append(`<br><p>Number of Reversals: ${results.num_reversals}</p>`);
+    resultsHtml.append('<hr><hr>');
     resultsHtml.append(prettyPrint(results.trials));
     resultsHtml.append('<hr><hr>');
     resultsHtml.append(prettyPrint(results.trialData));
