@@ -60,6 +60,12 @@ $(function() {
 
 function startExperiment() {
   var experimentSettings = getSettings();
+  experimentSettings.staircase = new DbStaircase({
+    firstVal: experimentSettings.firstVal,
+    down: experimentSettings.nDown,
+    stepSizes: [8, 4, 4, 2, 2, 1, 1, 0.5],
+    verbosity: 1
+  });
   var timeline = getMIDTimeline(experimentSettings);
   jsPsych.init({
     timeline: timeline,
@@ -67,7 +73,7 @@ function startExperiment() {
       results.trialData = JSON.parse(
         jsPsych.data.get().json()
       );
-
+      results.staircase = experimentSettings.staircase;
       processResults();
       displayResults();
     }
@@ -85,10 +91,10 @@ function getSettings() {
 }
 
 function processResults() {
-
     collectTrials();
-    results.staircase_values = getStaircaseValues();
     results.successRate = results.numHits / (results.numHits + results.numMisses);
+
+    getStaircaseValues();
 }
 
 function collectTrials() {
@@ -138,7 +144,26 @@ function collectTrials() {
 }
 
 function getStaircaseValues() {
+  // Last value in staircase not used:
+  results.staircase.stairs.values.splice(-1);
+  results.staircase_values = results.staircase.stairs.values;
+  results.num_reversals = results.staircase.stairs.numReversals;
 
+  [10, 7, 5, 3].forEach( function(n) {
+    if (results.staircase_values.length > n) {
+      results[`mean_value_last_${n}`] = getMeanForLast(results.staircase_values, n);
+    }
+  });
+}
+
+function getMeanForLast(arr, n) {
+  var data = arr.slice(-n);
+  var sum = 0;
+  for (var i = 0; i < data.length; i++) {
+    sum += data[i];
+  }
+
+  return Math.round(sum / n);
 }
 
 function getDataPoint(trialPart) {
@@ -159,10 +184,19 @@ function displayResults() {
     resultsHtml.append(`<p>You scored ${results.successRate * 100} %<p><hr><hr>`);
     
     resultsHtml.append('<div id="theGraph" style="height: 450px;"></div>');
-    resultsHtml.append('<hr><hr>');
     $('body').append(resultsHtml);
 
     drawSampleChart(results);
+    resultsHtml.append('<hr><hr>');
+
+    resultsHtml.append(`<h2>Determined Threshold</h2>`);
+    [10, 7, 5, 3].forEach( function(n) {
+      if (typeof results[`mean_value_last_${n}`] !== 'undefined') {
+        resultsHtml.append(`<p>Mean over last ${n} values: ${results[`mean_value_last_${n}`]}ms</p>`);
+      }
+    });
+    resultsHtml.append(`<br><p>Number of Reversals: ${results.num_reversals}</p>`);
+    resultsHtml.append('<hr><hr>');
     resultsHtml.append(prettyPrint(results.trials));
     resultsHtml.append('<hr><hr>');
     resultsHtml.append(prettyPrint(results.trialData));

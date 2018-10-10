@@ -19,12 +19,7 @@ function getMIDTimeline(settings) {
   }
 
   if (settings.staircase_method == 'version2') {
-    var staircase = new DbStaircase({
-      firstVal: settings.firstVal,
-      down: settings.nDown,
-      stepSizes: [8, 4, 4, 2, 2, 1, 1, 0.5],
-      verbosity: 1
-    });
+    var staircase = settings.staircase;
   } else {
     var staircase = new Staircase({
       firstVal: settings.firstVal,
@@ -47,8 +42,6 @@ function getMIDTimeline(settings) {
     data: {target: true},
     on_finish: function(data) {
         data.presentation_duration = staircase.getValue();
-        // var staircase_values = staircase.stairs.values;
-        data.staircase_values = staircase.stairs.values.slice();
         var hit = data.rt ? true : false;
         data.hit = hit;
         staircase.addResponse(hit);

@@ -107,6 +107,7 @@ function DbStaircase(stairs) {
   this.stairs.successiveGood = 0;
   this.stairs.successiveBad = 0;
   this.stairs.reversed = false;
+  this.stairs.numReversals = 0;
   this.stairs.currentDirection = 0;
   this.stairs.verbosity = stairs.verbosity || 0;
   if (this.stairs.verbosity) {
@@ -117,20 +118,12 @@ function DbStaircase(stairs) {
       var dB = stair.stepSizes[stair.currentStepSizeIndex];
       var oldVal = stair.values[stair.values.length - 1];
       var ratio = Math.pow(10, dB/20 * 1);
-
-      console.log('easier db: ', dB);
-      console.log('easier ratio: ', ratio);
-
       return oldVal * ratio;
     },
     harder: function(stair) { // harder is 'deacrease time'
       var dB = stair.stepSizes[stair.currentStepSizeIndex];
       var oldVal = stair.values[stair.values.length - 1];
       var ratio = Math.pow(10, dB/20 * -1);
-
-      console.log('harder db: ', dB);
-      console.log('harder ratio: ', ratio);
-
       return oldVal * ratio;
     }
   }
@@ -159,11 +152,8 @@ DbStaircase.prototype.chooseNextVal = function(resp) {
     // detect reversal and update currentStepSizeIndex
     if (stair.currentDirection == -1) {
       // reversal happened
-      console.log('Reversal happened');
-      // console.log('prevDir: ', stair.currentDirection);
-      console.log('prevStepSize: ', this.stairs.stepSizes[this.stairs.currentStepSizeIndex]);
       this.incrementStepSizeIndex();
-      console.log('nextStepSize: ', this.stairs.stepSizes[this.stairs.currentStepSizeIndex]);
+      this.stairs.numReversals++;
       this.stairs.reversed = true;
     }
     this.stairs.currentDirection = 1;
@@ -181,11 +171,8 @@ DbStaircase.prototype.chooseNextVal = function(resp) {
     // detect reversal and update currentStepSizeIndex
     if (stair.currentDirection == 1) {
       // reversal happened
-      console.log('Reversal happened');
-      // console.log('prevDir: ', stair.currentDirection);
-      console.log('prevStepSize: ', this.stairs.stepSizes[this.stairs.currentStepSizeIndex]);
       this.incrementStepSizeIndex();
-      console.log('nextStepSize: ', this.stairs.stepSizes[this.stairs.currentStepSizeIndex]);
+      this.stairs.numReversals++;
       this.stairs.reversed = true;
     }
     this.stairs.currentDirection = -1;
