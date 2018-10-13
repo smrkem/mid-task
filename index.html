@@ -138,6 +138,9 @@ function collectTrials() {
 
       if (trialPart.fixation2) {
         currentTrial.responded_late = trialPart.rt || false;
+
+        currentTrial.suspect_chearing = ( trialPart.keylog.length > 2 );
+        currentTrial.num_responses = trialPart.keylog.length;
       }
     });
     results.trials.push(currentTrial);

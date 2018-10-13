@@ -4,6 +4,8 @@ function jitterTime(){
 }
 
 function getMIDTimeline(settings) {
+  var keysLogger = [];
+
   // Check for valid settings and create staircase:
   if (typeof settings.numTrials==="undefined") {
     throw new Error("No numTrials specified for experiment.");
@@ -33,6 +35,40 @@ function getMIDTimeline(settings) {
 
 
 
+  var fixation1 = {
+    type: 'html-keyboard-response',
+    data: { fixation1: true, beginTrial: true },
+    on_start: function(data) {
+      keysLogger = [];
+      // attach event listener:
+      document.addEventListener("keyup", keylogger= function(event) {
+        keysLogger.push({
+          timestamp: 1234,
+          keyCode: event.keyCode
+        });
+    });
+    },
+    stimulus: '<div style="font-size:60px;">+</div>',
+    response_ends_trial: false,
+    trial_duration: function() { return jitterTime(); },
+    on_finish: function(data) {
+      data.presentation_duration = this.trial_duration;
+    }
+  }
+  
+  var fixation2 = {
+    type: 'html-keyboard-response',
+    data: { fixation2: true },
+    stimulus: '<div style="font-size:60px;">+</div>',
+    response_ends_trial: false,
+    trial_duration: function() { return jitterTime(); },
+    on_finish: function(data) {
+      data.presentation_duration = this.trial_duration;
+      data.keylog = keysLogger;
+      document.removeEventListener("keyup", keylogger);
+    }
+  }
+  
   // create test here so it uses staircase:
   var test = {
     type: "html-keyboard-response",
@@ -84,28 +120,6 @@ function getMIDTimeline(settings) {
 
 
 // Set up experiment bits in vars where possible:
-
-var fixation1 = {
-  type: 'html-keyboard-response',
-  data: { fixation1: true, beginTrial: true },
-  stimulus: '<div style="font-size:60px;">+</div>',
-  response_ends_trial: false,
-  trial_duration: function() { return jitterTime(); },
-  on_finish: function(data) {
-    data.presentation_duration = this.trial_duration;
-  }
-}
-
-var fixation2 = {
-  type: 'html-keyboard-response',
-  data: { fixation2: true },
-  stimulus: '<div style="font-size:60px;">+</div>',
-  response_ends_trial: false,
-  trial_duration: function() { return jitterTime(); },
-  on_finish: function(data) {
-    data.presentation_duration = this.trial_duration;
-  }
-}
 
 var feedback = {
   type: "html-keyboard-response",
